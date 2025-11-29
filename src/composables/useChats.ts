@@ -109,8 +109,10 @@ export function useChats() {
     // Save attachments first
     const attachmentIds: string[] = [];
     if (attachments.length > 0) {
-      await db.attachments.bulkAdd(attachments);
-      attachmentIds.push(...attachments.map(a => a.id));
+      // Clone attachments to remove Vue reactivity proxies
+      const plainAttachments = attachments.map(a => ({ ...a }));
+      await db.attachments.bulkAdd(plainAttachments);
+      attachmentIds.push(...plainAttachments.map(a => a.id));
     }
 
     // Add user message
