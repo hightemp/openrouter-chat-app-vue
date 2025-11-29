@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue';
-import { ArrowUp, ArrowDown, Edit2, FileText, Copy, RefreshCw, Check, X } from 'lucide-vue-next';
+import { ArrowUp, ArrowDown, Edit2, FileText, Copy, RefreshCw, Check, X, Trash2 } from 'lucide-vue-next';
 import MarkdownContent from './MarkdownContent.vue';
 import type { Message, Attachment } from '../types';
 import { db } from '../db';
@@ -10,7 +10,7 @@ const props = defineProps<{
   isLast: boolean;
 }>();
 
-const emit = defineEmits(['regenerate', 'move-up', 'move-down', 'edit']);
+const emit = defineEmits(['regenerate', 'move-up', 'move-down', 'edit', 'delete']);
 
 const showRaw = ref(false);
 const isEditing = ref(false);
@@ -120,17 +120,24 @@ const cancelEdit = () => {
       >
         <FileText class="icon-xs" />
       </button>
-      <button 
-        @click="copyToClipboard" 
-        class="action-btn" 
+      <button
+        @click="copyToClipboard"
+        class="action-btn"
         title="Copy to Clipboard"
       >
         <Copy class="icon-xs" />
       </button>
-      <button 
+      <button
+        @click="$emit('delete', message.id)"
+        class="action-btn delete"
+        title="Delete"
+      >
+        <Trash2 class="icon-xs" />
+      </button>
+      <button
         v-if="isLast && message.role === 'assistant'"
         @click="$emit('regenerate')"
-        class="action-btn" 
+        class="action-btn"
         title="Regenerate"
       >
         <RefreshCw class="icon-xs" />
@@ -295,6 +302,10 @@ const cancelEdit = () => {
 }
 
 .action-btn.cancel {
+  color: var(--danger-color);
+}
+
+.action-btn.delete:hover {
   color: var(--danger-color);
 }
 

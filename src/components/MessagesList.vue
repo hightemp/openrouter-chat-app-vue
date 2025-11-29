@@ -3,7 +3,7 @@ import { ref, onUpdated, nextTick, watch } from 'vue';
 import MessageItem from './MessageItem.vue';
 import { useChats } from '../composables/useChats';
 
-const { messages, isGenerating, regenerateLastMessage, moveMessageUp, moveMessageDown, editMessage } = useChats();
+const { messages, isGenerating, regenerateLastMessage, moveMessageUp, moveMessageDown, editMessage, deleteMessage } = useChats();
 const containerRef = ref<HTMLElement | null>(null);
 
 const scrollToBottom = async () => {
@@ -33,6 +33,7 @@ onUpdated(scrollToBottom);
       @move-up="moveMessageUp"
       @move-down="moveMessageDown"
       @edit="editMessage"
+      @delete="deleteMessage"
     />
 
     <div v-if="isGenerating" class="thinking-indicator">

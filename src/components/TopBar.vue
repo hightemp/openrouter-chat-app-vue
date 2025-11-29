@@ -56,15 +56,23 @@ watch(showModelDropdown, (newVal) => {
             />
           </div>
           <div class="models-list">
-            <button 
-              v-for="model in filteredModels" 
+            <button
+              v-for="model in filteredModels"
               :key="model.id"
               @click="selectModel(model.id)"
               class="model-item"
               :class="{ 'active': model.id === currentChat.modelConfig.model }"
             >
-              <div class="model-item-name">{{ model.name }}</div>
+              <div class="model-item-header">
+                <span class="model-item-name">{{ model.name }}</span>
+                <span class="model-item-context" v-if="model.context_length">{{ Math.round(model.context_length / 1024) }}k ctx</span>
+              </div>
               <div class="model-item-id">{{ model.id }}</div>
+              <div class="model-item-details">
+                <span v-if="model.pricing" class="model-price">
+                  ${{ model.pricing.prompt }} / ${{ model.pricing.completion }}
+                </span>
+              </div>
             </button>
             <div v-if="filteredModels.length === 0" class="no-models">
               No models found
@@ -214,13 +222,41 @@ watch(showModelDropdown, (newVal) => {
   border-left: 3px solid var(--accent-color);
 }
 
+.model-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .model-item-name {
   font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.model-item-context {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  background-color: var(--bg-primary);
+  padding: 2px 4px;
+  border-radius: 4px;
 }
 
 .model-item-id {
   font-size: 0.75rem;
   color: var(--text-tertiary);
+  margin-top: 2px;
+}
+
+.model-item-details {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.model-price {
+  color: var(--success-color);
 }
 
 .no-models {

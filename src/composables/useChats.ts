@@ -33,7 +33,7 @@ export function useChats() {
     await loadMessages(chatId);
   };
 
-  const createChat = async (title: string = 'New Chat', model: string = 'openai/gpt-3.5-turbo') => {
+  const createChat = async (title: string = 'New Chat', model: string = 'google/gemini-2.0-pro-exp-02-05:free') => {
     const newChat: Chat = {
       id: nanoid(),
       title,
@@ -141,7 +141,7 @@ export function useChats() {
 
 
       const response = await createChatCompletion(settings.value.apiKey, {
-        model: currentChat.value?.modelConfig.model || 'openai/gpt-3.5-turbo',
+        model: currentChat.value?.modelConfig.model || 'google/gemini-2.0-pro-exp-02-05:free',
         messages: apiMessages,
         temperature: currentChat.value?.modelConfig.temperature,
         top_p: currentChat.value?.modelConfig.top_p,
@@ -187,7 +187,7 @@ export function useChats() {
              try {
                  const apiMessages = messages.value.map(m => ({ role: m.role, content: m.content }));
                  const response = await createChatCompletion(settings.value.apiKey, {
-                    model: currentChat.value?.modelConfig.model || 'openai/gpt-3.5-turbo',
+                    model: currentChat.value?.modelConfig.model || 'google/gemini-2.0-pro-exp-02-05:free',
                     messages: apiMessages,
                  }, settings.value.baseUrl);
                  
@@ -257,6 +257,11 @@ export function useChats() {
     }
   };
 
+  const deleteMessage = async (messageId: string) => {
+    await db.messages.delete(messageId);
+    messages.value = messages.value.filter(m => m.id !== messageId);
+  };
+
   return {
     chats,
     currentChatId,
@@ -273,6 +278,7 @@ export function useChats() {
     regenerateLastMessage,
     moveMessageUp,
     moveMessageDown,
-    editMessage
+    editMessage,
+    deleteMessage
   };
 }
