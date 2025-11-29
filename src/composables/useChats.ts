@@ -149,9 +149,35 @@ export function useChats() {
       }, settings.value.baseUrl);
 
       const data = await response.json();
-      const assistantMessage = data.choices[0].message;
+      console.log('Full API Response:', data);
+      const choice = data.choices[0];
+      console.log('Choice object:', choice);
+      const assistantMessage = choice.message;
       
-      await addMessage('assistant', assistantMessage.content, [], data.model);
+      const responseAttachmentIds: string[] = [];
+      
+      // Handle images in response (OpenRouter/Google specific)
+      // Check both choice.images and message.images (just in case)
+      const images = choice.images || (choice.message as any).images;
+
+      if (images && Array.isArray(images)) {
+        console.log('Found images in response:', images);
+        const newAttachments: Attachment[] = images.map((img: any) => ({
+          id: nanoid(),
+          type: 'image',
+          data: img.image_url.url, // base64 data url
+          name: 'Generated Image'
+        }));
+        
+        console.log('Saving attachments:', newAttachments);
+        await db.attachments.bulkAdd(newAttachments);
+        responseAttachmentIds.push(...newAttachments.map(a => a.id));
+        console.log('Attachment IDs:', responseAttachmentIds);
+      } else {
+        console.log('No images found in response');
+      }
+
+      await addMessage('assistant', assistantMessage.content || '', responseAttachmentIds, data.model);
 
     } catch (e) {
       console.error('Failed to send message:', e);

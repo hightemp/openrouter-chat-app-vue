@@ -18,8 +18,11 @@ const editContent = ref('');
 const attachments = ref<Attachment[]>([]);
 
 const loadAttachments = async () => {
+  console.log('Loading attachments for message:', props.message.id, props.message.attachmentIds);
   if (props.message.attachmentIds && props.message.attachmentIds.length > 0) {
-    attachments.value = await db.attachments.bulkGet(props.message.attachmentIds) as Attachment[];
+    const results = await db.attachments.bulkGet(props.message.attachmentIds);
+    console.log('Loaded attachments:', results);
+    attachments.value = results.filter(a => a !== undefined) as Attachment[];
   } else {
     attachments.value = [];
   }
