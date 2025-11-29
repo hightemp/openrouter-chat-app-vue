@@ -201,6 +201,60 @@ export function useChats() {
       }
   };
 
+  const moveMessageUp = async (messageId: string) => {
+    const index = messages.value.findIndex(m => m.id === messageId);
+    if (index > 0) {
+      const msg = messages.value[index];
+      const prevMsg = messages.value[index - 1];
+      
+      if (msg && prevMsg) {
+        // Swap timestamps
+        const tempTimestamp = msg.timestamp;
+        msg.timestamp = prevMsg.timestamp;
+        prevMsg.timestamp = tempTimestamp;
+
+        // Update DB
+        await db.messages.update(msg.id, { timestamp: msg.timestamp });
+        await db.messages.update(prevMsg.id, { timestamp: prevMsg.timestamp });
+
+        // Update local state
+        messages.value[index] = prevMsg;
+        messages.value[index - 1] = msg;
+      }
+    }
+  };
+
+  const moveMessageDown = async (messageId: string) => {
+    const index = messages.value.findIndex(m => m.id === messageId);
+    if (index !== -1 && index < messages.value.length - 1) {
+      const msg = messages.value[index];
+      const nextMsg = messages.value[index + 1];
+      
+      if (msg && nextMsg) {
+        // Swap timestamps
+        const tempTimestamp = msg.timestamp;
+        msg.timestamp = nextMsg.timestamp;
+        nextMsg.timestamp = tempTimestamp;
+
+        // Update DB
+        await db.messages.update(msg.id, { timestamp: msg.timestamp });
+        await db.messages.update(nextMsg.id, { timestamp: nextMsg.timestamp });
+
+        // Update local state
+        messages.value[index] = nextMsg;
+        messages.value[index + 1] = msg;
+      }
+    }
+  };
+
+  const editMessage = async (messageId: string, newContent: string) => {
+    await db.messages.update(messageId, { content: newContent });
+    const msg = messages.value.find(m => m.id === messageId);
+    if (msg) {
+      msg.content = newContent;
+    }
+  };
+
   return {
     chats,
     currentChatId,
@@ -214,6 +268,9 @@ export function useChats() {
     updateChatTitle,
     updateChatModel,
     sendMessage,
-    regenerateLastMessage
+    regenerateLastMessage,
+    moveMessageUp,
+    moveMessageDown,
+    editMessage
   };
 }

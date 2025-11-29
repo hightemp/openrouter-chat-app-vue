@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { ArrowUp, ArrowDown, Edit2, FileText, Copy, RefreshCw } from 'lucide-vue-next';
+import { ref, onMounted, watch } from 'vue';
+import { ArrowUp, ArrowDown, Edit2, FileText, Copy, RefreshCw, Check, X } from 'lucide-vue-next';
 import MarkdownContent from './MarkdownContent.vue';
 import type { Message, Attachment } from '../types';
 import { db } from '../db';
@@ -10,16 +10,23 @@ const props = defineProps<{
   isLast: boolean;
 }>();
 
-const emit = defineEmits(['regenerate']);
+const emit = defineEmits(['regenerate', 'move-up', 'move-down', 'edit']);
 
 const showRaw = ref(false);
+const isEditing = ref(false);
+const editContent = ref('');
 const attachments = ref<Attachment[]>([]);
 
-onMounted(async () => {
+const loadAttachments = async () => {
   if (props.message.attachmentIds && props.message.attachmentIds.length > 0) {
     attachments.value = await db.attachments.bulkGet(props.message.attachmentIds) as Attachment[];
+  } else {
+    attachments.value = [];
   }
-});
+};
+
+onMounted(loadAttachments);
+watch(() => props.message.attachmentIds, loadAttachments);
 
 const copyToClipboard = async () => {
   try {
@@ -31,6 +38,22 @@ const copyToClipboard = async () => {
 
 const toggleFormat = () => {
   showRaw.value = !showRaw.value;
+};
+
+const startEditing = () => {
+  editContent.value = props.message.content;
+  isEditing.value = true;
+};
+
+const saveEdit = () => {
+  if (editContent.value.trim() !== props.message.content) {
+    emit('edit', props.message.id, editContent.value);
+  }
+  isEditing.value = false;
+};
+
+const cancelEdit = () => {
+  isEditing.value = false;
 };
 </script>
 
@@ -58,20 +81,35 @@ const toggleFormat = () => {
     </div>
 
     <div class="message-content-wrapper">
-      <div v-if="showRaw" class="raw-content">
+      <div v-if="isEditing" class="edit-mode">
+        <textarea 
+          v-model="editContent" 
+          class="edit-textarea"
+          rows="5"
+        ></textarea>
+        <div class="edit-actions">
+          <button @click="saveEdit" class="action-btn confirm" title="Save">
+            <Check class="icon-xs" />
+          </button>
+          <button @click="cancelEdit" class="action-btn cancel" title="Cancel">
+            <X class="icon-xs" />
+          </button>
+        </div>
+      </div>
+      <div v-else-if="showRaw" class="raw-content">
         {{ message.content }}
       </div>
       <MarkdownContent v-else :content="message.content" />
     </div>
 
-    <div class="message-actions">
-      <button class="action-btn" title="Move Up">
+    <div class="message-actions" v-if="!isEditing">
+      <button @click="$emit('move-up', message.id)" class="action-btn" title="Move Up">
         <ArrowUp class="icon-xs" />
       </button>
-      <button class="action-btn" title="Move Down">
+      <button @click="$emit('move-down', message.id)" class="action-btn" title="Move Down">
         <ArrowDown class="icon-xs" />
       </button>
-      <button class="action-btn" title="Edit">
+      <button @click="startEditing" class="action-btn" title="Edit">
         <Edit2 class="icon-xs" />
       </button>
       <button 
@@ -187,6 +225,35 @@ const toggleFormat = () => {
   border: 1px solid var(--border-color);
 }
 
+.edit-mode {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.edit-textarea {
+  width: 100%;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 8px;
+  font-family: inherit;
+  font-size: 1rem;
+  resize: vertical;
+}
+
+.edit-textarea:focus {
+  outline: none;
+  border-color: var(--accent-color);
+}
+
+.edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
 .message-actions {
   display: flex;
   align-items: center;
@@ -221,6 +288,14 @@ const toggleFormat = () => {
 
 .action-btn.active {
   color: var(--accent-color);
+}
+
+.action-btn.confirm {
+  color: var(--success-color);
+}
+
+.action-btn.cancel {
+  color: var(--danger-color);
 }
 
 .icon-xs {
