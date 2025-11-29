@@ -103,4 +103,12 @@ const renderedContent = computed(() => {
 .markdown-body h1 { font-size: 2em; }
 .markdown-body h2 { font-size: 1.5em; }
 .markdown-body h3 { font-size: 1.25em; }
+
+.markdown-body img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  margin: 1em 0;
+  border: 1px solid var(--border-color);
+}
 </style>

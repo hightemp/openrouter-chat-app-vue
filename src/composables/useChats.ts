@@ -33,7 +33,7 @@ export function useChats() {
     await loadMessages(chatId);
   };
 
-  const createChat = async (title: string = 'New Chat', model: string = 'google/gemini-2.0-pro-exp-02-05:free') => {
+  const createChat = async (title: string = 'New Chat', model: string = 'google/gemini-3-pro-preview') => {
     const newChat: Chat = {
       id: nanoid(),
       title,
@@ -141,7 +141,7 @@ export function useChats() {
 
 
       const response = await createChatCompletion(settings.value.apiKey, {
-        model: currentChat.value?.modelConfig.model || 'google/gemini-2.0-pro-exp-02-05:free',
+        model: currentChat.value?.modelConfig.model || 'google/gemini-3-pro-preview',
         messages: apiMessages,
         temperature: currentChat.value?.modelConfig.temperature,
         top_p: currentChat.value?.modelConfig.top_p,
@@ -187,7 +187,7 @@ export function useChats() {
              try {
                  const apiMessages = messages.value.map(m => ({ role: m.role, content: m.content }));
                  const response = await createChatCompletion(settings.value.apiKey, {
-                    model: currentChat.value?.modelConfig.model || 'google/gemini-2.0-pro-exp-02-05:free',
+                    model: currentChat.value?.modelConfig.model || 'google/gemini-3-pro-preview',
                     messages: apiMessages,
                  }, settings.value.baseUrl);
                  
