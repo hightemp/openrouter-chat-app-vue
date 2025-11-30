@@ -12,3 +12,5 @@ npm run dev
 ## Screenshots
 
 ![](screenshots/2025-11-29_17-49.png)
+
+![](https://asdertasd.site/counter/openrouter-chat-app-vue)
